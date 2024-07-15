@@ -240,31 +240,31 @@ list_serial_ports()
 # watchdog = Watchdog(60, myHandler)
 # def receiveData():
 while True:
-    try:
-        x = Receiver.recv(port)
-        if x is not None:
-            (_, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2,
-             steering2, slip2, auto2), datetime1 = np.array(x), x[1]
-            if (datetime1 - av.timestamp) >= 1:
-                av.stop()
-            else:
-                av.timestamp = datetime1
+
+    x = Receiver.recv(port)
+    if x is not None:
+        (_, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2,
+         steering2, slip2, auto2), datetime1 = np.array(x), x[1]
+        if (datetime1 - av.timestamp) >= 1:
+            av.stop()
         else:
-            (_, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2,
-             steering2, slip2, auto2) = [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
-        if id2 == av.id:
-            av.velocity = velocity1
-            av.throttle = throttle1
-            av.brake = braking1
-            av.steering = steering1
-            av.slip = slip1
-            av.auto = auto1
-            av.drive(velocity, throttle, brake, steering, slip)
-            print(av.get_data_from_Telemetry())
-            av.sendData()
-            time.sleep(1/2)
-        # except watchdog:
-        #     watchdog.stop()
-        #     break
+            av.timestamp = datetime1
+    else:
+        (_, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2,
+         steering2, slip2, auto2) = [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+    if id2 == av.id:
+        av.velocity = velocity1
+        av.throttle = throttle1
+        av.brake = braking1
+        av.steering = steering1
+        av.slip = slip1
+        av.auto = auto1
+        av.drive(velocity, throttle, brake, steering, slip)
+        print(av.get_data_from_Telemetry())
+        av.sendData()
+        time.sleep(1/2)
+    # except watchdog:
+    #     watchdog.stop()
+    #     break
 
 # receiveData()

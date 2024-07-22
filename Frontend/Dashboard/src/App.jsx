@@ -56,13 +56,13 @@ function App() {
                 braking: data1['braking'],
                 steering: data1['steeringAngle'],
                 slip: data1['slipAngle'],
-                auto_function: data1['autoFunction'].toString(),
+                auto_function: data1['autoFunction'],
                 velocity1: data1['velocity1'],
                 throttle1: data1['throttle1'],
                 braking1: data1['braking1'],
                 steering1: data1['steeringAngle1'],
                 slip1: data1['slipAngle1'],
-                autofunction1: data1['autoFunction1'].toString()
+                autofunction1: data1['autoFunction1']
             });
             // fetch("http://127.0.0.1:5175/data2").then((res)=>res.json().then((data2)=>{
             //     setData2({
@@ -128,23 +128,25 @@ function App() {
             body: val
         })
         if (response.ok){
-            let a = await response.json();
+            let a = await response.text();
                 console.log("done")
-                setData(prevState => ({
-                    ...prevState,
-                    velocity: a['velocity'],
-                    throttle: a['throttle'],
-                    braking: a['braking'],
-                    steering: a['steeringAngle'],
-                    slip: a['slipAngle'],
-                    auto_function: a['autoFunction'],
-                    velocity1: a['velocity1'],
-                    throttle1: a['throttle1'],
-                    braking1: a['braking1'],
-                    steering1: a['steeringAngle1'],
-                    slip1: a['slipAngle1'],
-                    auto_function1: a['autoFunction1']
-                }))
+            console.log(a)
+                // setData(prevState => ({
+                //     ...prevState,
+                //     velocity: a['velocity'],
+                //     throttle: a['throttle'],
+                //     braking: a['braking'],
+                //     steering: a['steeringAngle'],
+                //     slip: a['slipAngle'],
+                //     auto_function: a['autoFunction'],
+                //     velocity1: a['velocity1'],
+                //     throttle1: a['throttle1'],
+                //     braking1: a['braking1'],
+                //     steering1: a['steeringAngle1'],
+                //     slip1: a['slipAngle1'],
+                //     auto_function1: a['autoFunction1']
+                // }))
+
         }
         //     .then(res=> {
         //     if(!res.ok){

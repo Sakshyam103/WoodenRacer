@@ -1,8 +1,9 @@
-import serial
-
-# PORT = 'COM10'
+# import serial
 #
+# PORT = 'COM10'
 # port = serial.Serial(PORT, 9600, timeout=1)
+# if not port.is_open:
+#     port.open()
 
 
 def send(s, port, raw=0):

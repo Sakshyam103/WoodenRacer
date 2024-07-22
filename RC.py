@@ -1,18 +1,63 @@
-import numpy as np
-import serial
+# import queue
+# import threading
+#
+# import serial
+import random
+import threading
+import time
 
-import AV
 import Receiver
-import Sender
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 
-PORT = 'COM10'
+# class SerialHandler:
+#     def __init__(self, port, baudrate=9600, timeout = 1):
+#         self.port = serial.Serial(port, baudrate, timeout= timeout)
+#         self.send_queue = queue.Queue()
+#         self.recv_queue = queue.Queue()
+#         self.running = True
+#         self.thread = threading.Thread(target=self.run)
+#         self.thread.start()
+#
+#     def run(self):
+#         while self.running:
+#             if self.port.in_waiting:
+#                 data = self.port.read(100).decode()
+#                 self.recv_queue.put(data)
+#
+#             if not self.send_queue.empty():
+#                 data = self.send_queue.get()
+#                 self.port.write(data)
+#
+#     def recv(self):
+#                 if not self.recv_queue.empty():
+#                     return self.recv_queue.get()
+#                 return None
+#
+#     def close(self):
+#                 self.running = False
+#                 self.thread.join()
+#                 self.port.close()
+#     def send(self, data):
+#         self.send_queue.put(data)
 
-port = serial.Serial(PORT, 9600, timeout=1)
-if not port.is_open:
-    port.open()
+
+# def recv(raw=0):
+#     if port.in_waiting:
+#         if raw:
+#             return port.read(100)
+#         else:
+#             return port.read(100).decode()
+#
+#
+# def send(s, raw=0):
+#     header = b'\x00\x01\x17'  # header first 1st and 2nd bytes address 3rd "chan." (formula 420 + channel) in out case 0x17 = 23 = 420 + 23 = 433 MHz
+#     if raw:
+#         mess = s
+#     else:
+#         mess = s  # sending as a byte array
+#     port.write(header + mess)
 
 
 class RC:
@@ -22,14 +67,14 @@ class RC:
         self.throttle = 1
         self.braking = 1
         self.slipAngle = 1
-        self.autoFunction = int("n")
+        self.autoFunction = "n"
         self.steeringAngle = 2
         self.velocity1 = 2
         self.throttle1 = 2
         self.braking1 = 2
         self.steeringAngle1 = 2
         self.slipAngle1 = 2
-        self.autoFunction1 = int("n")
+        self.autoFunction1 = "n"
 
     def setVelocity(self, velocity1):
         self.velocity = velocity1
@@ -56,10 +101,10 @@ class RC:
         self.steeringAngle1 = d
         self.slipAngle1 = e
 
-    def start(self):
-        Sender.send(bytes([self.id, 101, self.velocity, self.throttle, self.braking, self.steeringAngle,
-                           self.slipAngle, self.autoFunction, 101, self.id, self.velocity1, self.throttle1,
-                           self.braking1, self.steeringAngle1, self.slipAngle1, self.autoFunction1]))
+    # def start(self):
+    #     Receiver.send(bytes([self.id, 101, self.velocity, self.throttle, self.braking, self.steeringAngle,
+    #                          self.slipAngle, ord(self.autoFunction), 101, self.id, self.velocity1, self.throttle1,
+    #                          self.braking1, self.steeringAngle1, self.slipAngle1, ord(self.autoFunction1)]))
         # self.av.drive(a, b, c, d, e, f, g, h, i, j, k)
 
     # def stop(self):
@@ -121,18 +166,41 @@ CORS(app, resources={r"/*": {"origins": "*"}}, methods=['GET', 'POST', 'PUT', 'D
 # rc1 = RC(av)  # global variable to store rc instance
 
 rc1 = RC()  # initialize RC class
-x = Receiver.recv(port)
-if x is not None:
-    _, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2, steering2, slip2, auto2 = np.array(x)
-else:
-    _, id2, velocity1, throttle1, braking1, steering1, slip1, auto1, _, _, velocity2, throttle2, braking2, steering2, slip2, auto2 = [1,0,0,0,0,0,0,0,0,1,rc1.velocity, rc1.throttle, rc1.braking, rc1.steeringAngle, rc1.slipAngle, 1]
-if id2 == rc1.id:
-    rc1.velocity1 = velocity1
-    rc1.throttle1 = throttle1
-    rc1.braking1 = braking1
-    rc1.steeringAngle1 = steering1
-    rc1.slipAngle1 = slip1
-    rc1.autoFunction1 = auto1
+
+
+def receiveThread():
+    while True:
+        x = Receiver.recv()
+        if x is not None:
+            z = list(x)
+        else:
+            z = [101, 100, 0, 0, 0, 0, 0, 0, 0, 1, rc1.velocity, rc1.throttle, rc1.braking, rc1.steeringAngle,
+                 rc1.slipAngle, 1]
+        if z[1] == rc1.id:
+            rc1.setVelocity(random.randint(0, 256))
+            rc1.velocity1 = z[2]
+            rc1.throttle1 = z[3]
+            rc1.braking1 = z[4]
+            rc1.steeringAngle1 = z[5]
+            rc1.slipAngle1 = z[6]
+            rc1.autoFunction1 = chr(z[7])
+            print(rc1.velocity1, rc1.throttle1, rc1.braking1, rc1.steeringAngle1, rc1.slipAngle1, rc1.autoFunction1)
+            # rc1.start()
+            time.sleep(1/2)
+
+
+def sendThread(x):
+    while True:
+        Receiver.send(bytes([x.id, 101, x.velocity, x.throttle, x.braking, x.steeringAngle,
+                             x.slipAngle, ord(x.autoFunction), 101, x.id, x.velocity1, x.throttle1,
+                             x.braking1, x.steeringAngle1, x.slipAngle1, ord(x.autoFunction1)]))
+        time.sleep(1/2)
+
+
+receiveThread = threading.Thread(target=receiveThread())
+sendThread = threading.Thread(target=sendThread(rc1))
+sendThread.start()
+receiveThread.start()
 
 
 @app.route('/data', methods=['GET'])
@@ -157,7 +225,7 @@ def start():
     # av.steering = rc1.steeringAngle
     # av.slip = rc1.slipAngle
     # av.auto = rc1.autoFunction
-    rc1.start()
+    # rc1.start()
     # print(r)
     # print(r["velocity"])
     # rc1.updateSensors(r['velocity1'], r['throttle1'], r['braking1'], r['steeringAngle1'], r['slipAngle1'])
@@ -185,4 +253,54 @@ def start():
 
 
 if __name__ == '__main__':
+    RC = RC()
+    Receiver.openport()
     app.run(debug=True, port=5175)
+    sendThread.join()
+    receiveThread.join()
+    Receiver.port.close()
+
+# import os
+# import threading
+# import time
+#
+# import serial
+#
+# PORT = 'COM256'  # name of port, on linux it maight be smth like ttyUSB0
+#
+# port = serial.Serial(PORT, 9600, timeout=1)  # timeout important to read empty buffer, prevents freezing
+#
+#
+# def recv(raw=0):
+#     if port.in_waiting:
+#         if raw:
+#             return list(port.read(100))
+#         else:
+#             return list(port.read(100).decode())
+#
+#
+# def send(s, raw=0):
+#     header = b'\x00\x01\x17'  # header first 1st & 2nd bytes address 3rd "chan." (formula 420 + chan#) in our case 0x17 = 23 = 420 + 23 = 433 MHz
+#     if raw:
+#         mess = s
+#     else:
+#         mess = s.encode()
+#     port.write(header + mess)
+#
+#
+# def main():
+#     if not port.is_open:
+#         port.open()
+#     send("Hello to computer 2")
+#     while True:
+#         time.sleep(5)
+#         x = recv()
+#         print(x)
+
+
+# print("Waiting")
+
+
+# if __name__ == "__main__":
+#     main()
+#     port.close()

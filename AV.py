@@ -7,11 +7,11 @@ import serial
 import Receiver
 import Sender
 import serial.tools.list_ports
-from threading import Timer
+
+# from threading import Timer
 
 
-
-PORT = 'COM10'
+PORT = 'COM1'
 
 port = serial.Serial(PORT, 9600, timeout=1)
 if not port.is_open:
@@ -47,6 +47,7 @@ def list_serial_ports():
         print(f"PID: {port.pid}")
         print(f"Serial Number: {port.serial_number}")
         print()
+
 
 class Telemetry:  # receives datas from sensor
     def __init__(self, speed, throttle3, steering3, slip3):
@@ -262,7 +263,7 @@ while True:
         av.drive(velocity, throttle, brake, steering, slip)
         print(av.get_data_from_Telemetry())
         av.sendData()
-        time.sleep(1/2)
+        time.sleep(1 / 2)
     # except watchdog:
     #     watchdog.stop()
     #     break

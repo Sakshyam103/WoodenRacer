@@ -46,7 +46,7 @@ function App() {
   headers.append('Access-Control-Allow-Origin', 'http://127.0.0.1:5175');
   headers.append('Access-Control-Allow-Credentials', 'true');
 
-    headers.append('GET', 'POST');
+
 
     useEffect(() => {
         fetch("http://127.0.0.1:5175/data").then((res)=>res.json().then((data1)=> {
@@ -77,7 +77,7 @@ function App() {
             // });
             // }))
         }));
-    }, []);
+    }, [data]);
 
 
     // function increaseSpeed(){
@@ -128,7 +128,7 @@ function App() {
             body: val
         })
         if (response.ok){
-            let a = await response.text();
+            let a = await response.json();
                 console.log("done")
             console.log(a)
                 // setData(prevState => ({

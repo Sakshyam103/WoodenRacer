@@ -8,21 +8,26 @@ import time
 import serial
 
 PORT = 'COM256'
-port = serial.Serial(PORT, 9600, timeout= 1)
+port = serial.Serial(PORT, 9600, timeout=1)
+
+
 def openport():
-# name of port, on linux it maight be smth like ttyUSB0
-# timeout important to read empty buffer, prevents freezing
+    # name of port, on linux it maight be smth like ttyUSB0
+    # timeout important to read empty buffer, prevents freezing
     if not port.is_open:
         port.open()
 
 
 def recv(raw=0):
     if port.in_waiting:
+        # return port.read(100)
+        # print(port.read(100))
+        # print(port.read(100).decode())
+        # print(list(port.read(100)))
         if raw:
-            return list(port.read(100))
+            return port.read(100)
         else:
-            return list(port.read(100))
-
+            return port.read(100)
 
 
 def send(s, raw=0):
@@ -31,6 +36,7 @@ def send(s, raw=0):
         mess = s
     else:
         mess = s
+    # mess = s
     port.write(header + mess)
 
 # def main():
